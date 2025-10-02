@@ -200,7 +200,8 @@ body {
     width: 200px;
     height: 200px;
     object-fit: contain;
-    filter: drop-shadow(0 0 20px rgba(150, 111, 51, 0.4));
+    filter: drop-shadow(0 0 20px rgba(104, 61, 44, 0.4));
+    transition: filter 0.3s ease;
 }
 
 .footer {
@@ -305,7 +306,7 @@ body {
     width: calc(100% - 32px);
     margin: 16px;
     padding: 8px 12px;
-    background: #21262d;
+    background: #2d333b;
     border: 1px solid #30363d;
     color: #e1e1e1;
     font-size: 13px;
@@ -316,7 +317,7 @@ body {
 }
 
 .background-select option {
-    background: #21262d;
+    background: #1c2128;
     color: #e1e1e1;
 }
 
@@ -471,11 +472,18 @@ body {
                 <span class="arrow">▼</span>
             </button>
             <div class="section-content" id="background-content">
-                <select class="background-select" id="background-select" onchange="changeBackground()">
-                    <option value="quake" class="quake-font">QUAKE</option>
-                    <option value="custom-bg">CUSTOM BACKGROUND</option>
-                    <option value="custom-sidebar">CUSTOM SIDEBAR</option>
-                </select>
+                <div class="option-item">
+                    <div class="checkbox" id="custom-bg-checkbox" onclick="toggleCustomBackground()"></div>
+                    <span>Custom Background</span>
+                </div>
+                <div class="option-item">
+                    <div class="checkbox" id="custom-sidebar-checkbox" onclick="toggleCustomSidebar()"></div>
+                    <span>Custom Sidebar</span>
+                </div>
+                <div class="option-item">
+                    <div class="checkbox" id="custom-logo-checkbox" onclick="toggleCustomLogo()"></div>
+                    <span>Custom Logo Color</span>
+                </div>
                 
                 <div id="custom-bg-picker" class="color-picker-container">
                     <div class="color-slider-group">
@@ -527,6 +535,32 @@ body {
                     </div>
                     <div class="color-preview" id="sidebar-color-preview"></div>
                     <button class="reset-button" onclick="resetSidebarColor()">Reset to Default</button>
+                </div>
+                
+                <div id="custom-logo-picker" class="color-picker-container">
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Red</span>
+                            <input type="number" min="0" max="255" value="150" class="color-value-input" id="logo-red-value" oninput="onLogoValueInput('red')">
+                        </div>
+                        <input type="range" min="0" max="255" value="150" class="color-slider red" id="logo-red-slider" oninput="updateLogoColor()">
+                    </div>
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Green</span>
+                            <input type="number" min="0" max="255" value="111" class="color-value-input" id="logo-green-value" oninput="onLogoValueInput('green')">
+                        </div>
+                        <input type="range" min="0" max="255" value="111" class="color-slider green" id="logo-green-slider" oninput="updateLogoColor()">
+                    </div>
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Blue</span>
+                            <input type="number" min="0" max="255" value="51" class="color-value-input" id="logo-blue-value" oninput="onLogoValueInput('blue')">
+                        </div>
+                        <input type="range" min="0" max="255" value="51" class="color-slider blue" id="logo-blue-slider" oninput="updateLogoColor()">
+                    </div>
+                    <div class="color-preview" id="logo-color-preview"></div>
+                    <button class="reset-button" onclick="resetLogoColor()">Reset to Default</button>
                 </div>
             </div>
         </div>
@@ -584,8 +618,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Load saved background preference
-    loadBackgroundPreference();
+    // Load saved preferences
+    loadCustomizationPreferences();
     
     // Always start fresh - user must click download/start each time
 });
@@ -616,96 +650,140 @@ function toggleFullscreen() {
     }
 }
 
-function changeBackground() {
-    const select = document.getElementById('background-select');
-    let value = select.value;
+function toggleCustomBackground() {
+    const checkbox = document.getElementById('custom-bg-checkbox');
+    const picker = document.getElementById('custom-bg-picker');
+    const isActive = checkbox.classList.toggle('checked');
     
-    // Handle legacy or unknown values
-    if (!value || (value !== 'quake' && value !== 'custom-bg' && value !== 'custom-sidebar')) {
-        value = 'quake';
-        select.value = 'quake';
+    if (isActive) {
+        picker.classList.add('active');
+        updateBackgroundColor();
+    } else {
+        picker.classList.remove('active');
+        // Reset to Quake background
+        document.body.style.background = "url('background.png') center center / cover no-repeat";
+        document.body.style.backgroundColor = '#0d1117';
     }
     
-    // Hide all color pickers first
-    document.getElementById('custom-bg-picker').classList.remove('active');
-    document.getElementById('custom-sidebar-picker').classList.remove('active');
+    localStorage.setItem('customBgEnabled', isActive);
+    updateSectionHeight();
+}
+
+function toggleCustomSidebar() {
+    const checkbox = document.getElementById('custom-sidebar-checkbox');
+    const picker = document.getElementById('custom-sidebar-picker');
+    const isActive = checkbox.classList.toggle('checked');
     
-    // Clear sidebar and related inline styles if not using custom sidebar
-    if (value !== 'custom-sidebar') {
+    if (isActive) {
+        picker.classList.add('active');
+        updateSidebarColor();
+    } else {
+        picker.classList.remove('active');
+        // Reset sidebar to default
         const sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
-            sidebar.style.background = '';
-        }
-        
-        const bgSelect = document.getElementById('background-select');
-        if (bgSelect) {
-            bgSelect.style.background = '';
-        }
+        if (sidebar) sidebar.style.background = '';
         
         const sectionHeaders = document.querySelectorAll('.section-header');
-        sectionHeaders.forEach(header => {
-            header.style.background = '';
-        });
+        sectionHeaders.forEach(header => header.style.background = '');
         
         const sectionContents = document.querySelectorAll('.section-content');
-        sectionContents.forEach(content => {
-            content.style.background = '';
-        });
+        sectionContents.forEach(content => content.style.background = '');
     }
     
-    if (value === 'quake') {
-        document.body.style.background = "url('background.png') center center / cover no-repeat";
-        document.body.style.backgroundColor = '#0d1117';
-    } else if (value === 'custom-bg') {
-        document.getElementById('custom-bg-picker').classList.add('active');
-        updateBackgroundColor();
-    } else if (value === 'custom-sidebar') {
-        // Reset body background to Quake theme when customizing sidebar
-        document.body.style.background = "url('background.png') center center / cover no-repeat";
-        document.body.style.backgroundColor = '#0d1117';
-        document.getElementById('custom-sidebar-picker').classList.add('active');
-        updateSidebarColor();
+    localStorage.setItem('customSidebarEnabled', isActive);
+    updateSectionHeight();
+}
+
+function toggleCustomLogo() {
+    const checkbox = document.getElementById('custom-logo-checkbox');
+    const picker = document.getElementById('custom-logo-picker');
+    const isActive = checkbox.classList.toggle('checked');
+    
+    if (isActive) {
+        picker.classList.add('active');
+        updateLogoColor();
+    } else {
+        picker.classList.remove('active');
+        // Reset logo to default
+        const logo = document.querySelector('.logo');
+        if (logo) {
+            logo.style.filter = 'drop-shadow(0 0 20px rgba(104, 61, 44, 0.4))';
+        }
     }
     
-    // Save preference to localStorage
-    localStorage.setItem('backgroundPreference', value);
-    
-    // Update section height after showing/hiding pickers
+    localStorage.setItem('customLogoEnabled', isActive);
+    updateSectionHeight();
+}
+
+function updateSectionHeight() {
     const content = document.getElementById('background-content');
     if (content) {
         content.style.maxHeight = content.scrollHeight + 'px';
     }
 }
 
-function loadBackgroundPreference() {
-    const saved = localStorage.getItem('backgroundPreference');
-    const select = document.getElementById('background-select');
-    
-    // Handle legacy or unknown values - default to quake
-    let preference = saved || 'quake';
-    if (preference !== 'quake' && preference !== 'custom-bg' && preference !== 'custom-sidebar') {
-        preference = 'quake';
-    }
-    
-    select.value = preference;
-    
-    // Load saved RGB values if they exist
+function loadCustomizationPreferences() {
+    // Load saved RGB values
     const bgR = localStorage.getItem('bgColorR') || '13';
     const bgG = localStorage.getItem('bgColorG') || '17';
     const bgB = localStorage.getItem('bgColorB') || '23';
     const sidebarR = localStorage.getItem('sidebarColorR') || '17';
     const sidebarG = localStorage.getItem('sidebarColorG') || '24';
     const sidebarB = localStorage.getItem('sidebarColorB') || '35';
+    const logoR = localStorage.getItem('logoColorR') || '104';
+    const logoG = localStorage.getItem('logoColorG') || '61';
+    const logoB = localStorage.getItem('logoColorB') || '44';
     
+    // Set slider values
     document.getElementById('bg-red-slider').value = bgR;
     document.getElementById('bg-green-slider').value = bgG;
     document.getElementById('bg-blue-slider').value = bgB;
     document.getElementById('sidebar-red-slider').value = sidebarR;
     document.getElementById('sidebar-green-slider').value = sidebarG;
     document.getElementById('sidebar-blue-slider').value = sidebarB;
+    document.getElementById('logo-red-slider').value = logoR;
+    document.getElementById('logo-green-slider').value = logoG;
+    document.getElementById('logo-blue-slider').value = logoB;
     
-    // Apply the preference
-    changeBackground();
+    // Set input values
+    document.getElementById('bg-red-value').value = bgR;
+    document.getElementById('bg-green-value').value = bgG;
+    document.getElementById('bg-blue-value').value = bgB;
+    document.getElementById('sidebar-red-value').value = sidebarR;
+    document.getElementById('sidebar-green-value').value = sidebarG;
+    document.getElementById('sidebar-blue-value').value = sidebarB;
+    document.getElementById('logo-red-value').value = logoR;
+    document.getElementById('logo-green-value').value = logoG;
+    document.getElementById('logo-blue-value').value = logoB;
+    
+    // Load checkbox states
+    const bgEnabled = localStorage.getItem('customBgEnabled') === 'true';
+    const sidebarEnabled = localStorage.getItem('customSidebarEnabled') === 'true';
+    const logoEnabled = localStorage.getItem('customLogoEnabled') === 'true';
+    
+    if (bgEnabled) {
+        document.getElementById('custom-bg-checkbox').classList.add('checked');
+        document.getElementById('custom-bg-picker').classList.add('active');
+        updateBackgroundColor();
+    } else {
+        // Set default Quake background when custom background is disabled
+        document.body.style.background = "url('background.png') center center / cover no-repeat";
+        document.body.style.backgroundColor = '#0d1117';
+    }
+    
+    if (sidebarEnabled) {
+        document.getElementById('custom-sidebar-checkbox').classList.add('checked');
+        document.getElementById('custom-sidebar-picker').classList.add('active');
+        updateSidebarColor();
+    }
+    
+    if (logoEnabled) {
+        document.getElementById('custom-logo-checkbox').classList.add('checked');
+        document.getElementById('custom-logo-picker').classList.add('active');
+        updateLogoColor();
+    }
+    
+    updateSectionHeight();
 }
 
 function updateBackgroundColor() {
@@ -762,16 +840,22 @@ function updateSidebarColor() {
     
     const color = `rgb(${r}, ${g}, ${b})`;
     
+    // Calculate brighter offset for dropdown buttons (add 20 to each channel, cap at 255)
+    const brighterR = Math.min(255, parseInt(r) + 20);
+    const brighterG = Math.min(255, parseInt(g) + 20);
+    const brighterB = Math.min(255, parseInt(b) + 20);
+    const brighterColor = `rgb(${brighterR}, ${brighterG}, ${brighterB})`;
+    
     // Update sidebar
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) {
         sidebar.style.background = color;
     }
     
-    // Update dropdown menu backgrounds
+    // Update dropdown menu backgrounds with brighter offset
     const bgSelect = document.getElementById('background-select');
     if (bgSelect) {
-        bgSelect.style.background = color;
+        bgSelect.style.background = brighterColor;
     }
     
     // Update section headers
@@ -815,6 +899,75 @@ function resetSidebarColor() {
     document.getElementById('sidebar-green-slider').value = 24;
     document.getElementById('sidebar-blue-slider').value = 35;
     updateSidebarColor();
+}
+
+function updateLogoColor() {
+    const r = document.getElementById('logo-red-slider').value;
+    const g = document.getElementById('logo-green-slider').value;
+    const b = document.getElementById('logo-blue-slider').value;
+    
+    document.getElementById('logo-red-value').value = r;
+    document.getElementById('logo-green-value').value = g;
+    document.getElementById('logo-blue-value').value = b;
+    
+    const color = `rgb(${r}, ${g}, ${b})`;
+    
+    // Update logo color - colorize entire logo, not just glow
+    const logo = document.querySelector('.logo');
+    if (logo) {
+        // Convert RGB to HSL-like values for filter
+        const rNorm = r / 255;
+        const gNorm = g / 255;
+        const bNorm = b / 255;
+        
+        // Create a sepia-based colorization effect that tints the entire logo
+        const brightness = (rNorm + gNorm + bNorm) / 3;
+        const sepia = 100;
+        const saturate = 100;
+        
+        // Calculate hue shift based on RGB values
+        const hue = Math.atan2(Math.sqrt(3) * (gNorm - bNorm), 2 * rNorm - gNorm - bNorm) * 180 / Math.PI;
+        
+        logo.style.filter = `
+            brightness(0) saturate(100%) 
+            invert(${brightness * 100}%) 
+            sepia(${sepia}%) 
+            saturate(${saturate * 8}%) 
+            hue-rotate(${hue}deg) 
+            brightness(${brightness * 1.2}) 
+            drop-shadow(0 0 20px rgba(${r}, ${g}, ${b}, 0.6))
+        `.trim().replace(/\s+/g, ' ');
+    }
+    
+    document.getElementById('logo-color-preview').style.backgroundColor = color;
+    
+    // Save to localStorage
+    localStorage.setItem('logoColorR', r);
+    localStorage.setItem('logoColorG', g);
+    localStorage.setItem('logoColorB', b);
+}
+
+function onLogoValueInput(channel) {
+    const input = document.getElementById(`logo-${channel}-value`);
+    let value = parseInt(input.value) || 0;
+    
+    // Clamp value between 0 and 255
+    value = Math.max(0, Math.min(255, value));
+    input.value = value;
+    
+    // Update slider
+    document.getElementById(`logo-${channel}-slider`).value = value;
+    
+    // Update color
+    updateLogoColor();
+}
+
+function resetLogoColor() {
+    // Default: #683d2c (104, 61, 44)
+    document.getElementById('logo-red-slider').value = 104;
+    document.getElementById('logo-green-slider').value = 61;
+    document.getElementById('logo-blue-slider').value = 44;
+    updateLogoColor();
 }
 
 function startGame() {

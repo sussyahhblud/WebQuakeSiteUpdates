@@ -24,12 +24,25 @@ WebQuake is an HTML5 WebGL port of the classic Quake game by id Software. This p
 - Screenshot verified: launcher UI displays properly with all sections visible
 
 ✅ **Launcher Interface**
-- Left sidebar with collapsible sections: GAMES, LAUNCH OPTIONS, START
+- Left sidebar with collapsible sections: GAMES, LAUNCH OPTIONS, SITE PREFERENCES, START
 - Dark theme styling with professional aesthetic
-- Quake logo displayed in center
+- Quake logo displayed in center (default color: rgb(104, 61, 44))
 - Footer with links: Instructions | GitHub | Half-Life
 - Fullscreen toggle option available
 - Integrated download overlay for game data
+
+✅ **UI Customization Features**
+- **Custom Background**: Toggle and RGB sliders to customize the launcher background color
+- **Custom Sidebar**: Toggle and RGB sliders to customize sidebar color
+  - Dropdown buttons automatically offset brighter (+20 RGB) than sidebar for visual distinction
+- **Custom Logo Color**: Toggle and RGB sliders to colorize the entire Quake logo
+  - Default logo color: rgb(104, 61, 44)
+  - Real-time color preview boxes for all customization options
+  - Number inputs (0-255) for precise RGB control
+  - Reset buttons to restore defaults
+- **Persistent Settings**: All customization preferences saved to localStorage
+- **Independent Controls**: Checkbox-based system allows simultaneous use of multiple customizations
+- **Default Quake Background**: Classic Quake themed background displays when custom background is disabled
 
 ⚠️ **Known Limitations**
 - Download URLs for Quake data files may need updating (original URLs return 404)
