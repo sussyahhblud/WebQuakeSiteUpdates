@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="user-scalable=no">
+<title>Quake Launcher</title>
+<link rel="icon" type="image/png" href="quake-logo.png">
+<link rel="shortcut icon" type="image/png" href="quake-logo.png">
+<style type="text/css">
+@font-face {
+    font-family: 'Quake';
+    src: url('Quake.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Quake-Title';
+    src: url('Quake-Title.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+canvas {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001;
+    background: #0d1117;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #0d1117;
+    color: #e1e1e1;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    text-transform: uppercase;
+}
+
+.launcher-container {
+    display: flex;
+    height: 100vh;
+    position: relative;
+    z-index: 1000;
+}
+
+.sidebar {
+    width: 320px;
+    background: rgba(17, 24, 35, 0.95);
+    border-right: 1px solid #30363d;
+    padding: 0;
+    overflow-y: auto;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, rgba(150, 111, 51, 0.1) 0%, transparent 70%);
+}
+
+.section {
+    border-bottom: 1px solid #30363d;
+}
+
+.section-header {
+    background: #21262d;
+    color: #966f33;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.section-header:hover {
+    background: #2d333b;
+}
+
+.section-header .arrow {
+    transition: transform 0.2s;
+}
+
+.section-header.collapsed .arrow {
+    transform: rotate(-90deg);
+}
+
+.section-content {
+    background: #161b22;
+    padding: 0;
+    transition: max-height 0.3s ease;
+    overflow: hidden;
+}
+
+.section-content.collapsed {
+    max-height: 0 !important;
+}
+
+.game-item, .option-item {
+    padding: 8px 16px;
+    border-bottom: 1px solid #30363d;
+    color: #e1e1e1;
+    font-size: 13px;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.game-item:hover {
+    background: #2d333b;
+}
+
+.game-item.selected {
+    background: #0969da;
+    color: white;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.checkbox.checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 1px;
+    color: #e1e1e1;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.start-button {
+    background: #238636;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 16px;
+    border-radius: 4px;
+    width: calc(100% - 32px);
+}
+
+.start-button:hover {
+    background: #2ea043;
+}
+
+.start-button:disabled {
+    background: #656d76;
+    cursor: not-allowed;
+}
+
+.quake-title {
+    font-family: 'Quake-Title', 'Trebuchet MS', Verdana, sans-serif !important;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(150, 111, 51, 0.4));
+}
+
+.footer {
+    position: fixed;
+    bottom: 10px;
+    left: 320px;
+    right: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #7d8590;
+    z-index: 1000;
+}
+
+.footer a {
+    color: #966f33;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.footer a:hover {
+    color: #e1e1e1;
+    text-decoration: underline;
+}
+
+.download-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.download-content {
+    text-align: center;
+    color: white;
+}
+
+.download-button {
+    background: #966f33;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.download-button:hover {
+    background: #b8834d;
+}
+
+.download-button:disabled {
+    background: #656d76;
+    cursor: not-allowed;
+}
+
+.download-status {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#end1, #end2 {
+    background-color: maroon;
+    white-space: pre;
+}
+
+.back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #966f33;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 4px;
+    z-index: 2000;
+    display: none;
+}
+
+.back-button:hover {
+    background: #b8834d;
+}
+
+.background-select {
+    width: calc(100% - 32px);
+    margin: 16px;
+    padding: 8px 12px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e1e1e1;
+    font-size: 13px;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.background-select option {
+    background: #21262d;
+    color: #e1e1e1;
+}
+
+.background-select option.quake-font {
+    font-family: 'Quake-Title', 'Trebuchet MS', Verdana, sans-serif;
+}
+
+.color-picker-container {
+    padding: 16px;
+    display: none;
+}
+
+.color-picker-container.active {
+    display: block;
+}
+
+.color-slider-group {
+    margin-bottom: 12px;
+}
+
+.color-slider-label {
+    display: flex;
+    justify-content: space-between;
+    color: #e1e1e1;
+    font-size: 11px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.color-value-input {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e1e1e1;
+    width: 40px;
+    text-align: center;
+    padding: 2px;
+    border-radius: 3px;
+    font-size: 11px;
+}
+
+.reset-button {
+    background: #656d76;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', Verdana, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+    border-radius: 3px;
+    width: 100%;
+    text-transform: uppercase;
+}
+
+.reset-button:hover {
+    background: #7d8590;
+}
+
+.color-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+    background: #30363d;
+}
+
+.color-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #e1e1e1;
+    cursor: pointer;
+}
+
+.color-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #e1e1e1;
+    cursor: pointer;
+    border: none;
+}
+
+.color-slider.red::-webkit-slider-thumb {
+    background: #ff4444;
+}
+
+.color-slider.green::-webkit-slider-thumb {
+    background: #44ff44;
+}
+
+.color-slider.blue::-webkit-slider-thumb {
+    background: #4444ff;
+}
+
+.color-slider.red::-moz-range-thumb {
+    background: #ff4444;
+}
+
+.color-slider.green::-moz-range-thumb {
+    background: #44ff44;
+}
+
+.color-slider.blue::-moz-range-thumb {
+    background: #4444ff;
+}
+
+.color-preview {
+    width: 100%;
+    height: 30px;
+    border-radius: 4px;
+    margin-top: 8px;
+    border: 1px solid #30363d;
+}
+</style>
+</head>
+<body>
+<button class="back-button" id="backButton" onclick="goBackToLauncher()">BACK</button>
+<div class="launcher-container">
+    <div class="sidebar">
+        <div class="section">
+            <button class="section-header" onclick="toggleSection(event, 'games')">
+                <span>♦ GAMES</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="section-content" id="games-content">
+                <div class="game-item selected quake-title" data-game="quake">Quake</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <button class="section-header" onclick="toggleSection(event, 'options')">
+                <span>♦ LAUNCH OPTIONS</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="section-content" id="options-content">
+                <div class="option-item">
+                    <div class="checkbox" id="fullscreen-checkbox" onclick="toggleFullscreen()"></div>
+                    <span>Fullscreen</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <button class="section-header" onclick="toggleSection(event, 'background')">
+                <span>♦ SITE PREFERENCES</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="section-content" id="background-content">
+                <select class="background-select" id="background-select" onchange="changeBackground()">
+                    <option value="quake" class="quake-font">QUAKE</option>
+                    <option value="custom-bg">CUSTOM BACKGROUND</option>
+                    <option value="custom-sidebar">CUSTOM SIDEBAR</option>
+                </select>
+                
+                <div id="custom-bg-picker" class="color-picker-container">
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Red</span>
+                            <input type="number" min="0" max="255" value="13" class="color-value-input" id="bg-red-value" oninput="onBgValueInput('red')">
+                        </div>
+                        <input type="range" min="0" max="255" value="13" class="color-slider red" id="bg-red-slider" oninput="updateBackgroundColor()">
+                    </div>
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Green</span>
+                            <input type="number" min="0" max="255" value="17" class="color-value-input" id="bg-green-value" oninput="onBgValueInput('green')">
+                        </div>
+                        <input type="range" min="0" max="255" value="17" class="color-slider green" id="bg-green-slider" oninput="updateBackgroundColor()">
+                    </div>
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Blue</span>
+                            <input type="number" min="0" max="255" value="23" class="color-value-input" id="bg-blue-value" oninput="onBgValueInput('blue')">
+                        </div>
+                        <input type="range" min="0" max="255" value="23" class="color-slider blue" id="bg-blue-slider" oninput="updateBackgroundColor()">
+                    </div>
+                    <div class="color-preview" id="bg-color-preview"></div>
+                    <button class="reset-button" onclick="resetBackgroundColor()">Reset to Default</button>
+                </div>
+                
+                <div id="custom-sidebar-picker" class="color-picker-container">
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Red</span>
+                            <input type="number" min="0" max="255" value="17" class="color-value-input" id="sidebar-red-value" oninput="onSidebarValueInput('red')">
+                        </div>
+                        <input type="range" min="0" max="255" value="17" class="color-slider red" id="sidebar-red-slider" oninput="updateSidebarColor()">
+                    </div>
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Green</span>
+                            <input type="number" min="0" max="255" value="24" class="color-value-input" id="sidebar-green-value" oninput="onSidebarValueInput('green')">
+                        </div>
+                        <input type="range" min="0" max="255" value="24" class="color-slider green" id="sidebar-green-slider" oninput="updateSidebarColor()">
+                    </div>
+                    <div class="color-slider-group">
+                        <div class="color-slider-label">
+                            <span>Blue</span>
+                            <input type="number" min="0" max="255" value="35" class="color-value-input" id="sidebar-blue-value" oninput="onSidebarValueInput('blue')">
+                        </div>
+                        <input type="range" min="0" max="255" value="35" class="color-slider blue" id="sidebar-blue-slider" oninput="updateSidebarColor()">
+                    </div>
+                    <div class="color-preview" id="sidebar-color-preview"></div>
+                    <button class="reset-button" onclick="resetSidebarColor()">Reset to Default</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <button class="section-header" onclick="toggleSection(event, 'start')">
+                <span>♦ START</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="section-content" id="start-content">
+                <button class="start-button" id="startButton" onclick="startGame()">START</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="logo-container">
+            <img src="quake-logo.png" alt="Quake Logo" class="logo">
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <a href="#" onclick="showInstructions()">Instructions</a> |
+    <a href="https://github.com/sussyahhblud/" target="_blank">GitHub</a> |
+    <a href="https://webxash3d.onrender.com/" target="_blank">Half-Life</a>
+</div>
+
+<div id="downloadOverlay" class="download-overlay hidden">
+    <div class="download-content">
+        <h2>Download Quake Data</h2>
+        <p>Game data files are required to play Quake.</p>
+        <button id="downloadButton" class="download-button" onclick="downloadQuakeData()">Download Quake Data</button>
+        <div id="downloadStatus" class="download-status"></div>
+    </div>
+</div>
+
+<script src="download.js"></script>
+<script>
+let fullscreenEnabled = false;
+let gameStarted = false;
+
+// Initialize sections to be open by default
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial heights for sections to be expanded by default
+    const sections = ['games', 'options', 'background', 'start'];
+    sections.forEach(section => {
+        const content = document.getElementById(section + '-content');
+        const header = document.querySelector(`[onclick*="${section}"]`);
+        if (content && header) {
+            // Ensure section is expanded and header is not marked as collapsed
+            content.classList.remove('collapsed');
+            header.classList.remove('collapsed');
+            content.style.maxHeight = content.scrollHeight + 'px';
+        }
+    });
+    
+    // Load saved background preference
+    loadBackgroundPreference();
+    
+    // Always start fresh - user must click download/start each time
+});
+
+function toggleSection(event, sectionName) {
+    const content = document.getElementById(sectionName + '-content');
+    const header = event.target.closest('.section-header');
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        content.style.maxHeight = content.scrollHeight + 'px';
+        header.classList.remove('collapsed');
+    } else {
+        content.classList.add('collapsed');
+        content.style.maxHeight = '0';
+        header.classList.add('collapsed');
+    }
+}
+
+function toggleFullscreen() {
+    const checkbox = document.getElementById('fullscreen-checkbox');
+    fullscreenEnabled = !fullscreenEnabled;
+    
+    if (fullscreenEnabled) {
+        checkbox.classList.add('checked');
+    } else {
+        checkbox.classList.remove('checked');
+    }
+}
+
+function changeBackground() {
+    const select = document.getElementById('background-select');
+    let value = select.value;
+    
+    // Handle legacy or unknown values
+    if (!value || (value !== 'quake' && value !== 'custom-bg' && value !== 'custom-sidebar')) {
+        value = 'quake';
+        select.value = 'quake';
+    }
+    
+    // Hide all color pickers first
+    document.getElementById('custom-bg-picker').classList.remove('active');
+    document.getElementById('custom-sidebar-picker').classList.remove('active');
+    
+    // Clear sidebar and related inline styles if not using custom sidebar
+    if (value !== 'custom-sidebar') {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.style.background = '';
+        }
+        
+        const bgSelect = document.getElementById('background-select');
+        if (bgSelect) {
+            bgSelect.style.background = '';
+        }
+        
+        const sectionHeaders = document.querySelectorAll('.section-header');
+        sectionHeaders.forEach(header => {
+            header.style.background = '';
+        });
+        
+        const sectionContents = document.querySelectorAll('.section-content');
+        sectionContents.forEach(content => {
+            content.style.background = '';
+        });
+    }
+    
+    if (value === 'quake') {
+        document.body.style.background = "url('background.png') center center / cover no-repeat";
+        document.body.style.backgroundColor = '#0d1117';
+    } else if (value === 'custom-bg') {
+        document.getElementById('custom-bg-picker').classList.add('active');
+        updateBackgroundColor();
+    } else if (value === 'custom-sidebar') {
+        // Reset body background to Quake theme when customizing sidebar
+        document.body.style.background = "url('background.png') center center / cover no-repeat";
+        document.body.style.backgroundColor = '#0d1117';
+        document.getElementById('custom-sidebar-picker').classList.add('active');
+        updateSidebarColor();
+    }
+    
+    // Save preference to localStorage
+    localStorage.setItem('backgroundPreference', value);
+    
+    // Update section height after showing/hiding pickers
+    const content = document.getElementById('background-content');
+    if (content) {
+        content.style.maxHeight = content.scrollHeight + 'px';
+    }
+}
+
+function loadBackgroundPreference() {
+    const saved = localStorage.getItem('backgroundPreference');
+    const select = document.getElementById('background-select');
+    
+    // Handle legacy or unknown values - default to quake
+    let preference = saved || 'quake';
+    if (preference !== 'quake' && preference !== 'custom-bg' && preference !== 'custom-sidebar') {
+        preference = 'quake';
+    }
+    
+    select.value = preference;
+    
+    // Load saved RGB values if they exist
+    const bgR = localStorage.getItem('bgColorR') || '13';
+    const bgG = localStorage.getItem('bgColorG') || '17';
+    const bgB = localStorage.getItem('bgColorB') || '23';
+    const sidebarR = localStorage.getItem('sidebarColorR') || '17';
+    const sidebarG = localStorage.getItem('sidebarColorG') || '24';
+    const sidebarB = localStorage.getItem('sidebarColorB') || '35';
+    
+    document.getElementById('bg-red-slider').value = bgR;
+    document.getElementById('bg-green-slider').value = bgG;
+    document.getElementById('bg-blue-slider').value = bgB;
+    document.getElementById('sidebar-red-slider').value = sidebarR;
+    document.getElementById('sidebar-green-slider').value = sidebarG;
+    document.getElementById('sidebar-blue-slider').value = sidebarB;
+    
+    // Apply the preference
+    changeBackground();
+}
+
+function updateBackgroundColor() {
+    const r = document.getElementById('bg-red-slider').value;
+    const g = document.getElementById('bg-green-slider').value;
+    const b = document.getElementById('bg-blue-slider').value;
+    
+    document.getElementById('bg-red-value').value = r;
+    document.getElementById('bg-green-value').value = g;
+    document.getElementById('bg-blue-value').value = b;
+    
+    const color = `rgb(${r}, ${g}, ${b})`;
+    document.body.style.background = 'none';
+    document.body.style.backgroundColor = color;
+    document.getElementById('bg-color-preview').style.backgroundColor = color;
+    
+    // Save to localStorage
+    localStorage.setItem('bgColorR', r);
+    localStorage.setItem('bgColorG', g);
+    localStorage.setItem('bgColorB', b);
+}
+
+function onBgValueInput(channel) {
+    const input = document.getElementById(`bg-${channel}-value`);
+    let value = parseInt(input.value) || 0;
+    
+    // Clamp value between 0 and 255
+    value = Math.max(0, Math.min(255, value));
+    input.value = value;
+    
+    // Update slider
+    document.getElementById(`bg-${channel}-slider`).value = value;
+    
+    // Update color
+    updateBackgroundColor();
+}
+
+function resetBackgroundColor() {
+    // Default: #0d1117 (13, 17, 23)
+    document.getElementById('bg-red-slider').value = 13;
+    document.getElementById('bg-green-slider').value = 17;
+    document.getElementById('bg-blue-slider').value = 23;
+    updateBackgroundColor();
+}
+
+function updateSidebarColor() {
+    const r = document.getElementById('sidebar-red-slider').value;
+    const g = document.getElementById('sidebar-green-slider').value;
+    const b = document.getElementById('sidebar-blue-slider').value;
+    
+    document.getElementById('sidebar-red-value').value = r;
+    document.getElementById('sidebar-green-value').value = g;
+    document.getElementById('sidebar-blue-value').value = b;
+    
+    const color = `rgb(${r}, ${g}, ${b})`;
+    
+    // Update sidebar
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.style.background = color;
+    }
+    
+    // Update dropdown menu backgrounds
+    const bgSelect = document.getElementById('background-select');
+    if (bgSelect) {
+        bgSelect.style.background = color;
+    }
+    
+    // Update section headers
+    const sectionHeaders = document.querySelectorAll('.section-header');
+    sectionHeaders.forEach(header => {
+        header.style.background = color;
+    });
+    
+    // Update section content areas
+    const sectionContents = document.querySelectorAll('.section-content');
+    sectionContents.forEach(content => {
+        content.style.background = color;
+    });
+    
+    document.getElementById('sidebar-color-preview').style.backgroundColor = color;
+    
+    // Save to localStorage
+    localStorage.setItem('sidebarColorR', r);
+    localStorage.setItem('sidebarColorG', g);
+    localStorage.setItem('sidebarColorB', b);
+}
+
+function onSidebarValueInput(channel) {
+    const input = document.getElementById(`sidebar-${channel}-value`);
+    let value = parseInt(input.value) || 0;
+    
+    // Clamp value between 0 and 255
+    value = Math.max(0, Math.min(255, value));
+    input.value = value;
+    
+    // Update slider
+    document.getElementById(`sidebar-${channel}-slider`).value = value;
+    
+    // Update color
+    updateSidebarColor();
+}
+
+function resetSidebarColor() {
+    // Default: #111823 (17, 24, 35)
+    document.getElementById('sidebar-red-slider').value = 17;
+    document.getElementById('sidebar-green-slider').value = 24;
+    document.getElementById('sidebar-blue-slider').value = 35;
+    updateSidebarColor();
+}
+
+function startGame() {
+    // Always show download overlay, regardless of whether data exists
+    document.getElementById('downloadOverlay').classList.remove('hidden');
+    
+    // Show the back button
+    document.getElementById('backButton').style.display = 'block';
+}
+
+function launchQuake() {
+    console.log('Launching Quake with fullscreen:', fullscreenEnabled);
+    
+    // Change website title to Quake
+    document.title = 'Quake';
+    
+    // Hide the launcher interface
+    document.querySelector('.launcher-container').style.display = 'none';
+    document.querySelector('.footer').style.display = 'none';
+    
+    // Apply fullscreen if enabled
+    if (fullscreenEnabled && !gameStarted) {
+        // Request fullscreen for the document
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+        }
+    }
+    
+    // Add click-to-fullscreen functionality when fullscreen toggle is enabled
+    if (fullscreenEnabled) {
+        document.body.addEventListener('click', clickToFullscreen);
+    }
+    
+    gameStarted = true;
+    
+    // Initialize Quake engine directly without page reload
+    if (window.initializeQuake) {
+        window.initializeQuake();
+    } else {
+        // Fallback: call Sys.InitFullGame directly if available
+        if (typeof Sys !== 'undefined' && Sys.InitFullGame) {
+            Sys.InitFullGame();
+        } else {
+            console.log('Quake engine not yet loaded, retrying...');
+            setTimeout(() => {
+                if (typeof Sys !== 'undefined' && Sys.InitFullGame) {
+                    Sys.InitFullGame();
+                }
+            }, 500);
+        }
+    }
+}
+
+function clickToFullscreen() {
+    // Only work if fullscreen toggle is enabled
+    if (!fullscreenEnabled) {
+        return;
+    }
+    
+    // Check if not in fullscreen, then request it
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+        }
+    }
+}
+
+function goBackToLauncher() {
+    console.log('Going back to launcher');
+    
+    // Change website title back to Quake Launcher
+    document.title = 'Quake Launcher';
+    
+    // Show the launcher interface
+    document.querySelector('.launcher-container').style.display = 'flex';
+    document.querySelector('.footer').style.display = 'block';
+    
+    // Hide the back button and download overlay
+    document.getElementById('backButton').style.display = 'none';
+    document.getElementById('downloadOverlay').classList.add('hidden');
+    
+    // Hide the game canvas
+    const canvas = document.getElementById('mainwindow');
+    if (canvas) {
+        canvas.style.display = 'none';
+    }
+    
+    // Remove click-to-fullscreen event listener
+    document.body.removeEventListener('click', clickToFullscreen);
+    
+    // Reset game state flag to allow fullscreen on next launch
+    gameStarted = false;
+    
+    // Exit fullscreen if active
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+function checkGameDataExists() {
+    const dataPath = '/id1/pak0.pak';
+    fetch(dataPath, { method: 'HEAD' })
+        .then(function(response) {
+            if (!response.ok) {
+                console.log('Game data not found, ready to download');
+            } else {
+                console.log('Game data found, ready to start');
+            }
+        })
+        .catch(function() {
+            console.log('Game data not found, ready to download');
+        });
+}
+
+function showInstructions() {
+    alert('WebQuake Instructions:\n\n1. Click "Start" to begin\n2. Click "Download Quake Data"\n3. Use the fullscreen option for better experience\n4. Standard Quake controls apply (WASD, mouse look, etc.)');
+}
+
+
+// Check periodically if the game canvas is visible
+function checkGameLoaded() {
+    var canvas = document.getElementById('mainwindow');
+    
+    if (canvas && canvas.style.display === 'inline-block') {
+        console.log('Game canvas is visible');
+        return true;
+    }
+    return false;
+}
+
+// Modified download success handler
+window.onDownloadComplete = function() {
+    document.getElementById('downloadOverlay').classList.add('hidden');
+    document.getElementById('backButton').style.display = 'none';
+    launchQuake();
+};
+</script>
+<div id="end" style="color: white; font-family: monospace; text-align: center;">
+<span id="end1" style="display: none;">                QUAKE: The Doomed Dimension <span style="color: yellow;">by <span style="background-color: navy;">id</span> Software               <span style="color: gray;">v1.09</span>  
+  ----------------------------------------------------------------------------  
+           CALL 1-800-IDGAMES TO ORDER OR FOR TECHNICAL SUPPORT                 
+             PRICE: $45.00 (PRICES MAY VARY OUTSIDE THE US.)                    
+                                                                                
+  Yes! You only have one fourth of this incredible epic. That is because most   
+   of you have paid us nothing or at most, very little. You could steal the     
+   game from a friend. But we both know you'll be punished by God if you do.    
+        <span style="color: yellow;">WHY RISK ETERNAL DAMNATION? CALL 1-800-IDGAMES AND BUY NOW!</span>             
+             Remember, we love you almost as much as He does.                   
+                                                                                
+            <span style="color: yellow;">Programming:</span> John Carmack, Michael Abrash, John Cash                
+       <span style="color: yellow;">Design:</span> John Romero, Sandy Petersen, American McGee, Tim Willits         
+                     <span style="color: yellow;">Art:</span> Adrian Carmack, Kevin Cloud                           
+               <span style="color: yellow;">Biz:</span> Jay Wilbur, Mike Wilson, Donna Jackson                      
+            <span style="color: yellow;">Projects:</span> Shawn Green   <span style="color: yellow;">Support:</span> Barrett Alexander                  
+              <span style="color: yellow;">Sound Effects:</span> Trent Reznor and Nine Inch Nails                   
+  For other information or details on ordering outside the US, check out the    
+     files accompanying QUAKE or our website at http://www.idsoftware.com.      
+    <span style="color: gray;">Quake is a trademark of Id Software, inc., (c)1996 Id Software, inc.        
+     All rights reserved. NIN logo is a registered trademark licensed to        
+                 Nothing Interactive, Inc. All rights reserved.</span>                 </span>
+<span id="end2" style="display: none;">        QUAKE <span style="color: yellow;">by <span style="background-color: navy;">id</span> Software                                             <span style="color: white;">v1.09</span>  
+ -----------------------------------------------------------------------------  </span>
+        Why did you quit from the registered version of QUAKE? Did the          
+        scary monsters frighten you? Or did Mr. Sandman tug at your             
+        little lids? No matter! What is important is you love our               
+        game, and gave us your money. Congratulations, you are probably         
+        not a thief.                                                            
+                                                           Thank You.           
+        <span style="color: yellow;"><span style="background-color: navy;">id</span> Software is:                                                         
+        PROGRAMMING:</span> John Carmack, Michael Abrash, John Cash                    
+        <span style="color: yellow;">DESIGN:</span> John Romero, Sandy Petersen, American McGee, Tim Willits        
+        <span style="color: yellow;">ART:</span> Adrian Carmack, Kevin Cloud                                        
+        <span style="color: yellow;">BIZ:</span> Jay Wilbur, Mike Wilson     <span style="color: yellow;">PROJECTS MAN:</span> Shawn Green              
+        <span style="color: yellow;">BIZ ASSIST:</span> Donna Jackson        <span style="color: yellow;">SUPPORT:</span> Barrett Alexander             
+        <span style="color: yellow;">SOUND EFFECTS AND MUSIC:</span> Trent Reznor and Nine Inch Nails               
+                                                                                
+        If you need help running QUAKE refer to the text files in the           
+        QUAKE directory, or our website at http://www.idsoftware.com.           
+        If all else fails, call our technical support at 1-800-IDGAMES.         
+      <span style="color: silver">Quake is a trademark of Id Software, inc., (c)1996 Id Software, inc.      
+        All rights reserved. NIN logo is a registered trademark licensed        
+             to Nothing Interactive, Inc. All rights reserved.</span>                  </span>
+</div>
+<canvas id="mainwindow" width="800" height="600" style="display: none;"></canvas>
+<img id="loading" alt="Loading" style="display: none; position: fixed;">
+<div id="progress" style="display: none; position: fixed;"></div>
+</div>
+<!-- WebQuake engine scripts will be loaded dynamically when needed -->
+<script type="x-shader/x-vertex" id="vshAlias">
+uniform vec3 uOrigin;
+uniform mat3 uAngles;
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+uniform vec3 uLightVec;
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+varying float vLightDot;
+void main(void)
+{
+        vec3 position = uViewAngles * (uAngles * aPosition + uOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aTexCoord;
+        vLightDot = dot(aNormal, uLightVec);
+}
+</script>
+<script type="x-shader/x-fragment" id="fshAlias">
+precision mediump float;
+uniform float uGamma;
+uniform float uAmbientLight;
+uniform float uShadeLight;
+uniform sampler2D tTexture;
+varying vec2 vTexCoord;
+varying float vLightDot;
+void main(void)
+{
+        vec4 texture = texture2D(tTexture, vTexCoord);
+        gl_FragColor = vec4(texture.rgb * mix(1.0, vLightDot * uShadeLight + uAmbientLight, texture.a), 1.0);
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshBrush">
+uniform vec3 uOrigin;
+uniform mat3 uAngles;
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+attribute vec3 aPosition;
+attribute vec4 aTexCoord;
+attribute vec4 aLightStyle;
+varying vec4 vTexCoord;
+varying vec4 vLightStyle;
+void main(void)
+{
+        vec3 position = uViewAngles * (uAngles * aPosition + uOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aTexCoord;
+        vLightStyle = aLightStyle;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshBrush">
+precision mediump float;
+uniform float uGamma;
+uniform sampler2D tTexture;
+uniform sampler2D tLightmap;
+uniform sampler2D tDlight;
+uniform sampler2D tLightStyle;
+varying vec4 vTexCoord;
+varying vec4 vLightStyle;
+void main(void)
+{
+        vec4 texture = texture2D(tTexture, vTexCoord.xy);
+        gl_FragColor = vec4(texture.rgb *
+                mix(1.0, dot(texture2D(tLightmap, vTexCoord.zw), vec4(
+                        texture2D(tLightStyle, vec2(vLightStyle.x, 0.0)).a,
+                        texture2D(tLightStyle, vec2(vLightStyle.y, 0.0)).a,
+                        texture2D(tLightStyle, vec2(vLightStyle.z, 0.0)).a,
+                        texture2D(tLightStyle, vec2(vLightStyle.w, 0.0)).a)
+                * 43.828125) + texture2D(tDlight, vTexCoord.zw).a, texture.a), 1.0);
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshCharacter">
+uniform vec2 uCharacter;
+uniform vec2 uDest;
+uniform mat4 uOrtho;
+attribute vec2 aPosition;
+varying vec2 vTexCoord;
+void main(void)
+{
+        gl_Position = uOrtho * vec4(aPosition * 8.0 + uDest, 0.0, 1.0);
+        vTexCoord = (aPosition + uCharacter) * 0.0625;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshCharacter">
+precision mediump float;
+uniform sampler2D tTexture;
+varying vec2 vTexCoord;
+void main(void)
+{
+        gl_FragColor = texture2D(tTexture, vTexCoord);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshDlight">
+uniform vec3 uOrigin;
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+uniform float uRadius;
+attribute vec3 aPosition;
+varying float vAlpha;
+void main(void)
+{
+        vec3 position = aPosition * 0.35 * uRadius + uViewAngles * (uOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vAlpha = aPosition.y * -0.2;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshDlight">
+precision mediump float;
+uniform float uGamma;
+varying float vAlpha;
+void main(void)
+{
+        gl_FragColor = vec4(pow(1.0, uGamma), pow(0.5, uGamma), 0.0, vAlpha);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshFill">
+uniform mat4 uOrtho;
+attribute vec2 aPosition;
+attribute vec4 aColor;
+varying vec4 vColor;
+void main(void)
+{
+        gl_Position = uOrtho * vec4(aPosition, 0.0, 1.0);
+        vColor = aColor;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshFill">
+precision mediump float;
+varying vec4 vColor;
+void main(void)
+{
+        gl_FragColor = vColor;
+}
+</script>
+<script type="x-shader/x-vertex" id="vshParticle">
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+uniform float uScale;
+attribute vec3 aOrigin;
+attribute vec2 aCoord;
+attribute float aScale;
+attribute vec3 aColor;
+varying vec2 vCoord;
+varying vec3 vColor;
+void main(void)
+{
+        vec2 point = aCoord * aScale;
+        vec3 position = vec3(point.x, 0.0, point.y) + uViewAngles * (aOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vCoord = aCoord;
+        vColor = aColor;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshParticle">
+precision mediump float;
+uniform float uGamma;
+varying vec2 vCoord;
+varying vec3 vColor;
+void main(void)
+{
+        gl_FragColor = vec4(vColor, 1.0 - smoothstep(0.75, 1.0, length(vCoord)));
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshPic">
+uniform mat4 uOrtho;
+attribute vec2 aPosition;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+void main(void)
+{
+        gl_Position = uOrtho * vec4(aPosition, 0.0, 1.0);
+        vTexCoord = aTexCoord;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshPic">
+precision mediump float;
+uniform sampler2D tTexture;
+varying vec2 vTexCoord;
+void main(void)
+{
+        gl_FragColor = texture2D(tTexture, vTexCoord);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshPicTranslate">
+uniform mat4 uOrtho;
+attribute vec2 aPosition;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+void main(void)
+{
+        gl_Position = uOrtho * vec4(aPosition, 0.0, 1.0);
+        vTexCoord = aTexCoord;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshPicTranslate">
+precision mediump float;
+uniform vec3 uTop;
+uniform vec3 uBottom;
+uniform sampler2D tTexture;
+uniform sampler2D tTrans;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec4 texture = texture2D(tTexture, vTexCoord);
+        vec4 trans = texture2D(tTrans, vTexCoord);
+        gl_FragColor = vec4(mix(mix(texture.rgb, uTop * trans.x, trans.y), uBottom * trans.z, trans.w), texture.a);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshPlayer">
+uniform vec3 uOrigin;
+uniform mat3 uAngles;
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+uniform vec3 uLightVec;
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+varying float vLightDot;
+void main(void)
+{
+        vec3 position = uViewAngles * (uAngles * aPosition + uOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aTexCoord;
+        vLightDot = dot(aNormal, uLightVec);
+}
+</script>
+<script type="x-shader/x-fragment" id="fshPlayer">
+precision mediump float;
+uniform float uGamma;
+uniform float uAmbientLight;
+uniform float uShadeLight;
+uniform vec3 uTop;
+uniform vec3 uBottom;
+uniform sampler2D tTexture;
+uniform sampler2D tPlayer;
+varying vec2 vTexCoord;
+varying float vLightDot;
+void main(void)
+{
+        vec4 texture = texture2D(tTexture, vTexCoord);
+        vec4 player = texture2D(tPlayer, vTexCoord);
+        gl_FragColor = vec4(
+                mix(mix(texture.rgb, uTop * (1.0 / 191.25) * player.x, player.y), uBottom * (1.0 / 191.25) * player.z, player.w)
+                * mix(1.0, vLightDot * uShadeLight + uAmbientLight, texture.a), 1.0);
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshSky">
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+uniform vec3 uScale;
+attribute vec3 aPosition;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec3 position = uViewAngles * (aPosition * uScale * 18918.0);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aPosition.xy * uScale.xy * 1.5;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshSky">
+precision mediump float;
+uniform float uGamma;
+uniform vec2 uTime;
+uniform sampler2D tSolid;
+uniform sampler2D tAlpha;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec4 alpha = texture2D(tAlpha, vTexCoord + uTime.x);
+        gl_FragColor = vec4(mix(texture2D(tSolid, vTexCoord + uTime.y).rgb, alpha.rgb, alpha.a), 1.0);
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshSkyChain">
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+attribute vec3 aPosition;
+void main(void)
+{
+        vec3 position = uViewAngles * (aPosition - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+}
+</script>
+<script type="x-shader/x-fragment" id="fshSkyChain">
+precision mediump float;
+void main(void)
+{
+}
+</script>
+<script type="x-shader/x-vertex" id="vshSprite">
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+attribute vec3 aPosition;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec3 position = uViewAngles * (aPosition - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aTexCoord;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshSprite">
+precision mediump float;
+uniform float uGamma;
+uniform sampler2D tTexture;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec4 texture = texture2D(tTexture, vTexCoord);
+        gl_FragColor = texture;
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshTurbulent">
+uniform vec3 uOrigin;
+uniform mat3 uAngles;
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+uniform mediump float uTime;
+attribute vec3 aPosition;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec3 position = uViewAngles * (uAngles * aPosition + uOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aTexCoord + vec2(sin(uTime * 0.1), cos(uTime * 0.1)) * 0.01;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshTurbulent">
+precision mediump float;
+uniform mediump float uGamma;
+uniform mediump float uTime;
+uniform sampler2D tTexture;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec2 coord = vTexCoord;
+        coord.x += sin(coord.y * 10.0 + uTime) * 0.005;
+        coord.y += cos(coord.x * 10.0 + uTime) * 0.005;
+        vec4 texture = texture2D(tTexture, coord);
+        gl_FragColor = texture;
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+<script type="x-shader/x-vertex" id="vshWarp">
+uniform vec3 uOrigin;
+uniform mat3 uAngles;
+uniform vec3 uViewOrigin;
+uniform mat3 uViewAngles;
+uniform mat4 uPerspective;
+attribute vec3 aPosition;
+attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec3 position = uViewAngles * (uAngles * aPosition + uOrigin - uViewOrigin);
+        gl_Position = uPerspective * vec4(position.xz, -position.y, 1.0);
+        vTexCoord = aTexCoord;
+}
+</script>
+<script type="x-shader/x-fragment" id="fshWarp">
+precision mediump float;
+uniform mediump float uGamma;
+uniform mediump float uTime;
+uniform sampler2D tTexture;
+varying vec2 vTexCoord;
+void main(void)
+{
+        vec2 coord = vTexCoord;
+        coord.x += sin(coord.y * 20.0 + uTime * 2.0) * 0.01;
+        coord.y += cos(coord.x * 20.0 + uTime * 2.0) * 0.01;
+        vec4 texture = texture2D(tTexture, coord);
+        gl_FragColor = texture;
+        gl_FragColor.r = pow(gl_FragColor.r, uGamma);
+        gl_FragColor.g = pow(gl_FragColor.g, uGamma);
+        gl_FragColor.b = pow(gl_FragColor.b, uGamma);
+}
+</script>
+</body>
+</html>

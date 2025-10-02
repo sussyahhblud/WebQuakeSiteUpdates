@@ -1,0 +1,17 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "**WebQuake** is an HTML5 WebGL port of the game Quake by id Software.",
+  "main": "webquake-server.js",
+  "scripts": {
+    "start": "node webquake-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "websocket": "^1.0.35"
+  }
+}
